@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-04-12 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "data_inicio",
+  "data_fim",
+  "col_break_1",
+  "total_mensagens",
+  "section_resumo",
+  "resumo"
+ ],
+ "fields": [
+  {
+   "fieldname": "data_inicio",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Data Início",
+   "reqd": 1
+  },
+  {
+   "fieldname": "data_fim",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Data Fim",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_mensagens",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total de Mensagens"
+  },
+  {
+   "fieldname": "section_resumo",
+   "fieldtype": "Section Break",
+   "label": "Resumo Gerado pela IA"
+  },
+  {
+   "fieldname": "resumo",
+   "fieldtype": "Long Text",
+   "label": "Resumo",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-12 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Imunocare CRM Custom",
+ "name": "Resumo IA Atendimento",
+ "naming_rule": "Random",
+ "autoname": "hash",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "data_inicio",
+ "sort_order": "DESC"
+}

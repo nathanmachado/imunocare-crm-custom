@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-04-12 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "canal",
+  "numero",
+  "col_break_1",
+  "direcao",
+  "lead",
+  "section_msg",
+  "mensagem"
+ ],
+ "fields": [
+  {
+   "fieldname": "canal",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Canal WhatsApp",
+   "options": "Canal WhatsApp",
+   "reqd": 1
+  },
+  {
+   "fieldname": "numero",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Número",
+   "reqd": 1
+  },
+  {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "direcao",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Direção",
+   "options": "Entrada\nSaída",
+   "reqd": 1
+  },
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Lead CRM",
+   "options": "CRM Lead"
+  },
+  {
+   "fieldname": "section_msg",
+   "fieldtype": "Section Break",
+   "label": "Mensagem"
+  },
+  {
+   "fieldname": "mensagem",
+   "fieldtype": "Long Text",
+   "label": "Mensagem",
+   "reqd": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-04-12 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Imunocare CRM Custom",
+ "name": "Mensagem WhatsApp",
+ "naming_rule": "Random",
+ "autoname": "hash",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "read": 1,
+   "role": "CRM User",
+   "write": 0
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC"
+}

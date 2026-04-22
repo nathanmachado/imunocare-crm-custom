@@ -41,7 +41,11 @@ def webhook():
 		if channel == "WhatsApp":
 			_handle_whatsapp(params)
 		elif channel == "Voice":
-			return _handle_voice(params)
+			twiml = _handle_voice(params)
+			frappe.db.set_value(
+				"Twilio Webhook Event", sid, "processed", 1, update_modified=False
+			)
+			return _set_xml_response(twiml)
 		frappe.db.set_value(
 			"Twilio Webhook Event", sid, "processed", 1, update_modified=False
 		)
@@ -52,6 +56,35 @@ def webhook():
 		)
 
 	return _respond_for_channel(channel)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def voice_consent():
+	"""Webhook invocado pelo <Gather> do IVR de consentimento (MVP-05)."""
+	from imunocare_crm_custom.channels.voice.handlers import handle_consent_response
+
+	request = frappe.request
+	params = dict(frappe.form_dict)
+	params.pop("cmd", None)
+
+	url = _full_url(request)
+	signature = request.headers.get("X-Twilio-Signature", "")
+	if not _validate_signature(url, params, signature):
+		frappe.local.response["http_status_code"] = 403
+		return {"error": "invalid_signature"}
+
+	call_sid = (params.get("CallSid") or "").strip()
+	if not call_sid:
+		frappe.local.response["http_status_code"] = 400
+		return {"error": "missing_sid"}
+
+	try:
+		twiml = handle_consent_response(params)
+	except Exception as e:
+		frappe.log_error(title="Twilio voice_consent failed", message=frappe.get_traceback())
+		return _set_xml_response(VOICE_TWIML_HANGUP)
+
+	return _set_xml_response(twiml)
 
 
 def _detect_channel(params: dict) -> str:
@@ -105,17 +138,19 @@ def _handle_whatsapp(params: dict) -> None:
 	handle_inbound(params)
 
 
-def _handle_voice(params: dict):
-	# Stub — implementado em MVP-05 (Call Log + TwiML forward)
+def _handle_voice(params: dict) -> str:
+	from imunocare_crm_custom.channels.voice.handlers import handle_inbound
+
+	return handle_inbound(params)
+
+
+def _set_xml_response(xml: str):
 	frappe.local.response["type"] = "xml"
-	frappe.local.response["xml"] = VOICE_TWIML_HANGUP
+	frappe.local.response["xml"] = xml
 	return
 
 
 def _respond_for_channel(channel: str):
 	if channel == "Voice":
-		frappe.local.response["type"] = "xml"
-		frappe.local.response["xml"] = VOICE_TWIML_HANGUP
-		return
-	frappe.local.response["type"] = "xml"
-	frappe.local.response["xml"] = WHATSAPP_TWIML_EMPTY
+		return _set_xml_response(VOICE_TWIML_HANGUP)
+	return _set_xml_response(WHATSAPP_TWIML_EMPTY)

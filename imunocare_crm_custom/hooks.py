@@ -101,11 +101,17 @@ fixtures = [
 			"Communication-whatsapp_status",
 			"Communication-whatsapp_from",
 			"Communication-whatsapp_to",
+			"CRM Call Log-patient",
+			"CRM Call Log-consent_recorded",
 		]]],
 	},
 	{
 		"dt": "Property Setter",
 		"filters": [["name", "=", "Communication-communication_medium-options"]],
+	},
+	{
+		"dt": "CRM Lead Status",
+		"filters": [["name", "in", ["Missed Call"]]],
 	},
 ]
 

@@ -57,6 +57,37 @@ COMMUNICATION_CUSTOM_FIELDS = {
 
 COMMUNICATION_MEDIUM_OPTIONS = "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nWhatsApp\nOther"
 
+CRM_CALL_LOG_CUSTOM_FIELDS = {
+	"CRM Call Log": [
+		{
+			"fieldname": "patient",
+			"fieldtype": "Link",
+			"label": "Paciente",
+			"options": "Patient",
+			"insert_after": "reference_docname",
+			"read_only": 1,
+		},
+		{
+			"fieldname": "consent_recorded",
+			"fieldtype": "Check",
+			"label": "Consentimento de Gravação",
+			"insert_after": "recording_url",
+			"default": "0",
+			"description": "Cliente autorizou gravação da chamada via IVR (LGPD)",
+		},
+	]
+}
+
+CRM_LEAD_STATUSES = [
+	{
+		"doctype": "CRM Lead Status",
+		"name": "Missed Call",
+		"lead_status": "Missed Call",
+		"type": "Open",
+		"color": "yellow",
+	},
+]
+
 
 CRM_LEAD_CUSTOM_FIELDS = {
 	"CRM Lead": [
@@ -109,6 +140,7 @@ CRM_LEAD_CUSTOM_FIELDS = {
 def install_custom_fields() -> None:
 	create_custom_fields(CRM_LEAD_CUSTOM_FIELDS, ignore_validate=True)
 	create_custom_fields(COMMUNICATION_CUSTOM_FIELDS, ignore_validate=True)
+	create_custom_fields(CRM_CALL_LOG_CUSTOM_FIELDS, ignore_validate=True)
 	make_property_setter(
 		"Communication",
 		"communication_medium",
@@ -117,3 +149,10 @@ def install_custom_fields() -> None:
 		"Text",
 		validate_fields_for_doctype=False,
 	)
+	_ensure_crm_lead_statuses()
+
+
+def _ensure_crm_lead_statuses() -> None:
+	for status in CRM_LEAD_STATUSES:
+		if not frappe.db.exists("CRM Lead Status", status["lead_status"]):
+			frappe.get_doc(status).insert(ignore_permissions=True, ignore_if_duplicate=True)

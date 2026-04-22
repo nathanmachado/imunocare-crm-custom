@@ -59,6 +59,38 @@ def webhook():
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
+def message_status():
+	"""Webhook de status callback para mensagens WhatsApp/SMS outbound (MVP-06)."""
+	from imunocare_crm_custom.channels.whatsapp.sender import update_status_from_callback
+
+	request = frappe.request
+	params = dict(frappe.form_dict)
+	params.pop("cmd", None)
+
+	url = _full_url(request)
+	signature = request.headers.get("X-Twilio-Signature", "")
+	if not _validate_signature(url, params, signature):
+		frappe.local.response["http_status_code"] = 403
+		return {"error": "invalid_signature"}
+
+	sid = (params.get("MessageSid") or "").strip()
+	status = (params.get("MessageStatus") or "").strip().lower()
+	if not sid or not status:
+		frappe.local.response["http_status_code"] = 400
+		return {"error": "missing_sid_or_status"}
+
+	try:
+		update_status_from_callback(sid, status)
+	except Exception:
+		frappe.log_error(
+			title=f"Twilio message_status processing failed (sid={sid})",
+			message=frappe.get_traceback(),
+		)
+
+	return {"ok": True}
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def voice_consent():
 	"""Webhook invocado pelo <Gather> do IVR de consentimento (MVP-05)."""
 	from imunocare_crm_custom.channels.voice.handlers import handle_consent_response

@@ -178,23 +178,11 @@ fixtures = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"imunocare_crm_custom.tasks.all"
-# 	],
-# 	"daily": [
-# 		"imunocare_crm_custom.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"imunocare_crm_custom.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"imunocare_crm_custom.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"imunocare_crm_custom.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"daily": [
+		"imunocare_crm_custom.twilio_integration.tasks.sync_message_templates_approval",
+	],
+}
 
 # Testing
 # -------

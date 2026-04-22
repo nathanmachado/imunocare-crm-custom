@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-04-22 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "var_name",
+  "example"
+ ],
+ "fields": [
+  {
+   "fieldname": "var_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Variable",
+   "reqd": 1,
+   "description": "Nome/índice da variável, ex: 1, 2, patient_name"
+  },
+  {
+   "fieldname": "example",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Example"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-22 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Twilio Integration",
+ "name": "Message Template Variable",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

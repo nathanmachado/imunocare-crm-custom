@@ -1,6 +1,62 @@
 from __future__ import annotations
 
+import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+COMMUNICATION_CUSTOM_FIELDS = {
+	"Communication": [
+		{
+			"fieldname": "twilio_section",
+			"fieldtype": "Section Break",
+			"label": "Twilio",
+			"insert_after": "references_section",
+			"collapsible": 1,
+		},
+		{
+			"fieldname": "twilio_message_sid",
+			"fieldtype": "Data",
+			"label": "Twilio Message SID",
+			"insert_after": "twilio_section",
+			"unique": 1,
+			"read_only": 1,
+			"in_standard_filter": 1,
+		},
+		{
+			"fieldname": "whatsapp_direction",
+			"fieldtype": "Select",
+			"label": "WhatsApp Direction",
+			"options": "\ninbound\noutbound",
+			"insert_after": "twilio_message_sid",
+			"read_only": 1,
+		},
+		{
+			"fieldname": "whatsapp_status",
+			"fieldtype": "Data",
+			"label": "WhatsApp Status",
+			"insert_after": "whatsapp_direction",
+			"read_only": 1,
+			"description": "queued, sent, delivered, read, failed, undelivered, received",
+		},
+		{
+			"fieldname": "whatsapp_from",
+			"fieldtype": "Data",
+			"label": "WhatsApp From",
+			"insert_after": "whatsapp_status",
+			"read_only": 1,
+		},
+		{
+			"fieldname": "whatsapp_to",
+			"fieldtype": "Data",
+			"label": "WhatsApp To",
+			"insert_after": "whatsapp_from",
+			"read_only": 1,
+		},
+	]
+}
+
+COMMUNICATION_MEDIUM_OPTIONS = "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nWhatsApp\nOther"
+
 
 CRM_LEAD_CUSTOM_FIELDS = {
 	"CRM Lead": [
@@ -52,3 +108,12 @@ CRM_LEAD_CUSTOM_FIELDS = {
 
 def install_custom_fields() -> None:
 	create_custom_fields(CRM_LEAD_CUSTOM_FIELDS, ignore_validate=True)
+	create_custom_fields(COMMUNICATION_CUSTOM_FIELDS, ignore_validate=True)
+	make_property_setter(
+		"Communication",
+		"communication_medium",
+		"options",
+		COMMUNICATION_MEDIUM_OPTIONS,
+		"Text",
+		validate_fields_for_doctype=False,
+	)

@@ -100,8 +100,9 @@ def _log_event(*, sid: str, channel: str, url: str, params: dict, signature_vali
 
 
 def _handle_whatsapp(params: dict) -> None:
-	# Stub — implementado em MVP-04 (Communication + mídia)
-	pass
+	from imunocare_crm_custom.channels.whatsapp.handlers import handle_inbound
+
+	handle_inbound(params)
 
 
 def _handle_voice(params: dict):

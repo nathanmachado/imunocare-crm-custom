@@ -1,0 +1,15 @@
+{
+  "MessageSid": "SMcccccccccccccccccccccccccccccccc",
+  "SmsSid": "SMcccccccccccccccccccccccccccccccc",
+  "AccountSid": "ACtest00000000000000000000000000",
+  "From": "whatsapp:+5511977777777",
+  "To": "whatsapp:+5511888888888",
+  "Body": "Olá, segue foto da carteira de vacinação",
+  "NumMedia": "1",
+  "NumSegments": "1",
+  "MediaUrl0": "https://api.twilio.com/2010-04-01/Accounts/ACtest/Messages/SMccc/Media/MEccc",
+  "MediaContentType0": "image/jpeg",
+  "ProfileName": "Paciente Existente",
+  "WaId": "5511977777777",
+  "SmsStatus": "received"
+}

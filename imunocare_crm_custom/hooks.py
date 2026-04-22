@@ -95,7 +95,17 @@ fixtures = [
 			"CRM Lead-column_break_imunocare_contacts",
 			"CRM Lead-first_contact_at",
 			"CRM Lead-last_contact_at",
+			"Communication-twilio_section",
+			"Communication-twilio_message_sid",
+			"Communication-whatsapp_direction",
+			"Communication-whatsapp_status",
+			"Communication-whatsapp_from",
+			"Communication-whatsapp_to",
 		]]],
+	},
+	{
+		"dt": "Property Setter",
+		"filters": [["name", "=", "Communication-communication_medium-options"]],
 	},
 ]
 

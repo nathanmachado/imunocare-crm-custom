@@ -90,6 +90,61 @@ def message_status():
 	return {"ok": True}
 
 
+@frappe.whitelist(methods=["POST"])
+def voice_start(lead: str, agent: str | None = None):
+	"""Inicia click-to-call para o Lead (autenticado, MVP-07)."""
+	from imunocare_crm_custom.channels.voice.outbound import start_call
+
+	return start_call(lead=lead, agent=agent)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def voice_bridge():
+	"""TwiML invocado quando o atendente atende o outbound call (MVP-07)."""
+	from imunocare_crm_custom.channels.voice.outbound import handle_bridge
+
+	request = frappe.request
+	params = dict(frappe.form_dict)
+	params.pop("cmd", None)
+
+	url = _full_url(request)
+	signature = request.headers.get("X-Twilio-Signature", "")
+	if not _validate_signature(url, params, signature):
+		frappe.local.response["http_status_code"] = 403
+		return {"error": "invalid_signature"}
+
+	try:
+		twiml = handle_bridge(params)
+	except Exception:
+		frappe.log_error(title="Twilio voice_bridge failed", message=frappe.get_traceback())
+		return _set_xml_response(VOICE_TWIML_HANGUP)
+
+	return _set_xml_response(twiml)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def voice_status():
+	"""Status callback para chamadas outbound (MVP-07)."""
+	from imunocare_crm_custom.channels.voice.outbound import handle_status
+
+	request = frappe.request
+	params = dict(frappe.form_dict)
+	params.pop("cmd", None)
+
+	url = _full_url(request)
+	signature = request.headers.get("X-Twilio-Signature", "")
+	if not _validate_signature(url, params, signature):
+		frappe.local.response["http_status_code"] = 403
+		return {"error": "invalid_signature"}
+
+	try:
+		handle_status(params)
+	except Exception:
+		frappe.log_error(title="Twilio voice_status failed", message=frappe.get_traceback())
+
+	return {"ok": True}
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def voice_consent():
 	"""Webhook invocado pelo <Gather> do IVR de consentimento (MVP-05)."""

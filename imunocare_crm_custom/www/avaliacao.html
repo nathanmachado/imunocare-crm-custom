@@ -1,0 +1,100 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Avaliação de Atendimento — Imunocare{% endblock %}
+
+{% block page_content %}
+<div class="container" style="max-width: 640px; margin: 2rem auto;">
+	<h2>Avaliação de Atendimento Imunocare</h2>
+
+	{% if error %}
+		<div class="alert alert-danger">
+			<strong>Não foi possível abrir esta avaliação.</strong>
+			<br>{{ error }}
+		</div>
+	{% elif already_submitted %}
+		<div class="alert alert-info">
+			Sua avaliação já foi registrada. Obrigado pelo feedback!
+		</div>
+	{% else %}
+		<p>Olá, {{ lead_first_name }}. Leva menos de 1 minuto.</p>
+		<form id="feedback-form">
+			<input type="hidden" name="token" value="{{ token }}">
+
+			{% for param in parameters %}
+			<div class="form-group" style="margin-bottom: 1rem;">
+				<label><strong>{{ param }}</strong></label>
+				<div>
+					{% for n in range(1, 6) %}
+						<label style="margin-right: 0.75rem;">
+							<input type="radio" name="rating_{{ loop.index0 }}" data-param="{{ param }}" value="{{ n }}" required>
+							{{ n }}
+						</label>
+					{% endfor %}
+				</div>
+			</div>
+			{% endfor %}
+
+			<div class="form-group" style="margin-top: 1.5rem;">
+				<label for="comment"><strong>Seu comentário (opcional)</strong></label>
+				<textarea id="comment" name="comment" class="form-control" rows="4"
+					placeholder="Conte-nos o que podemos melhorar. Somos gratos por feedbacks!"></textarea>
+			</div>
+
+			<button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Enviar avaliação</button>
+		</form>
+
+		<div id="thank-you" style="display: none; margin-top: 1.5rem;" class="alert alert-success">
+			<strong>Obrigado pelo seu feedback!</strong>
+			<br>Valorizamos imensamente a sua opinião — ela ajuda a Imunocare a melhorar o atendimento.
+		</div>
+
+		<div id="submit-error" style="display: none; margin-top: 1rem;" class="alert alert-danger"></div>
+
+		<script>
+		(function() {
+			const form = document.getElementById("feedback-form");
+			const thankYou = document.getElementById("thank-you");
+			const errorBox = document.getElementById("submit-error");
+
+			form.addEventListener("submit", async function(e) {
+				e.preventDefault();
+				errorBox.style.display = "none";
+
+				const token = form.elements["token"].value;
+				const comment = form.elements["comment"].value;
+				const ratings = {};
+				form.querySelectorAll('input[type=radio]:checked').forEach(function(el) {
+					ratings[el.dataset.param] = parseInt(el.value, 10);
+				});
+
+				try {
+					const resp = await fetch("/api/method/imunocare_crm_custom.api.survey.submit_feedback", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/x-www-form-urlencoded",
+							"X-Frappe-CSRF-Token": "guest",
+						},
+						body: new URLSearchParams({
+							token: token,
+							ratings: JSON.stringify(ratings),
+							comment: comment,
+						}).toString(),
+					});
+					const data = await resp.json();
+					if (!resp.ok || data.message?.error) {
+						errorBox.textContent = "Não foi possível enviar: " + (data.message?.error || resp.statusText);
+						errorBox.style.display = "block";
+						return;
+					}
+					form.style.display = "none";
+					thankYou.style.display = "block";
+				} catch (err) {
+					errorBox.textContent = "Erro de rede: " + err.message;
+					errorBox.style.display = "block";
+				}
+			});
+		})();
+		</script>
+	{% endif %}
+</div>
+{% endblock %}

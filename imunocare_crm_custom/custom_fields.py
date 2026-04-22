@@ -57,6 +57,27 @@ COMMUNICATION_CUSTOM_FIELDS = {
 
 COMMUNICATION_MEDIUM_OPTIONS = "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nWhatsApp\nOther"
 
+QUALITY_FEEDBACK_CUSTOM_FIELDS = {
+	"Quality Feedback": [
+		{
+			"fieldname": "crm_lead",
+			"fieldtype": "Link",
+			"label": "CRM Lead",
+			"options": "CRM Lead",
+			"insert_after": "document_name",
+			"description": "Lead associado à avaliação",
+		},
+		{
+			"fieldname": "comment",
+			"fieldtype": "Long Text",
+			"label": "Comentário do cliente",
+			"insert_after": "parameters",
+			"description": "Feedback escrito opcional",
+		},
+	]
+}
+
+
 CRM_CALL_LOG_CUSTOM_FIELDS = {
 	"CRM Call Log": [
 		{
@@ -91,6 +112,14 @@ CRM_LEAD_STATUSES = [
 IMUNOCARE_ATTENDANT_ROLE = "Imunocare Atendente"
 
 ASSIGNMENT_RULE_NAME = "Imunocare CRM Lead Round Robin"
+
+QF_TEMPLATE_NAME = "Avaliação de Atendimento Imunocare"
+QF_TEMPLATE_PARAMETERS = [
+	"Canal",
+	"Cordialidade",
+	"Resolução",
+	"Tempo de resposta",
+]
 
 
 CRM_LEAD_CUSTOM_FIELDS = {
@@ -137,6 +166,30 @@ CRM_LEAD_CUSTOM_FIELDS = {
 			"insert_after": "first_contact_at",
 			"read_only": 1,
 		},
+		{
+			"fieldname": "avaliacao_enviada",
+			"fieldtype": "Check",
+			"label": "Avaliação Enviada",
+			"insert_after": "last_contact_at",
+			"read_only": 1,
+			"default": "0",
+		},
+		{
+			"fieldname": "atendente_encerramento",
+			"fieldtype": "Link",
+			"label": "Atendente de Encerramento",
+			"options": "User",
+			"insert_after": "avaliacao_enviada",
+			"read_only": 1,
+			"description": "Snapshot do atendente no momento do encerramento",
+		},
+		{
+			"fieldname": "encerramento_datetime",
+			"fieldtype": "Datetime",
+			"label": "Encerrado em",
+			"insert_after": "atendente_encerramento",
+			"read_only": 1,
+		},
 	]
 }
 
@@ -145,6 +198,7 @@ def install_custom_fields() -> None:
 	create_custom_fields(CRM_LEAD_CUSTOM_FIELDS, ignore_validate=True)
 	create_custom_fields(COMMUNICATION_CUSTOM_FIELDS, ignore_validate=True)
 	create_custom_fields(CRM_CALL_LOG_CUSTOM_FIELDS, ignore_validate=True)
+	create_custom_fields(QUALITY_FEEDBACK_CUSTOM_FIELDS, ignore_validate=True)
 	make_property_setter(
 		"Communication",
 		"communication_medium",
@@ -156,6 +210,7 @@ def install_custom_fields() -> None:
 	_ensure_crm_lead_statuses()
 	_ensure_attendant_role()
 	_ensure_assignment_rule()
+	_ensure_qf_template()
 
 
 def _ensure_crm_lead_statuses() -> None:
@@ -200,6 +255,18 @@ def _ensure_assignment_rule() -> None:
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 	sync_assignment_rule_users()
+
+
+def _ensure_qf_template() -> None:
+	if frappe.db.exists("Quality Feedback Template", QF_TEMPLATE_NAME):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Quality Feedback Template",
+			"template": QF_TEMPLATE_NAME,
+			"parameters": [{"parameter": p} for p in QF_TEMPLATE_PARAMETERS],
+		}
+	).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 def sync_assignment_rule_users() -> None:

@@ -95,6 +95,9 @@ fixtures = [
 			"CRM Lead-column_break_imunocare_contacts",
 			"CRM Lead-first_contact_at",
 			"CRM Lead-last_contact_at",
+			"CRM Lead-avaliacao_enviada",
+			"CRM Lead-atendente_encerramento",
+			"CRM Lead-encerramento_datetime",
 			"Communication-twilio_section",
 			"Communication-twilio_message_sid",
 			"Communication-whatsapp_direction",
@@ -103,6 +106,8 @@ fixtures = [
 			"Communication-whatsapp_to",
 			"CRM Call Log-patient",
 			"CRM Call Log-consent_recorded",
+			"Quality Feedback-crm_lead",
+			"Quality Feedback-comment",
 		]]],
 	},
 	{
@@ -120,6 +125,10 @@ fixtures = [
 	{
 		"dt": "Assignment Rule",
 		"filters": [["name", "=", "Imunocare CRM Lead Round Robin"]],
+	},
+	{
+		"dt": "Quality Feedback Template",
+		"filters": [["name", "=", "Avaliação de Atendimento Imunocare"]],
 	},
 ]
 

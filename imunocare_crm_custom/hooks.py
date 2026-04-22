@@ -82,8 +82,22 @@ app_license = "mit"
 # Installation
 # ------------
 
-# before_install = "imunocare_crm_custom.install.before_install"
-# after_install = "imunocare_crm_custom.install.after_install"
+after_install = "imunocare_crm_custom.custom_fields.install_custom_fields"
+after_migrate = ["imunocare_crm_custom.custom_fields.install_custom_fields"]
+
+fixtures = [
+	{
+		"dt": "Custom Field",
+		"filters": [["name", "in", [
+			"CRM Lead-imunocare_channel_section",
+			"CRM Lead-source_channel",
+			"CRM Lead-patient",
+			"CRM Lead-column_break_imunocare_contacts",
+			"CRM Lead-first_contact_at",
+			"CRM Lead-last_contact_at",
+		]]],
+	},
+]
 
 # Uninstallation
 # ------------

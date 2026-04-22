@@ -74,6 +74,16 @@ def close_lead(lead: str, send_invite: bool = True) -> dict:
 				title=f"close_lead invite dispatch falhou (lead={lead})",
 				message=frappe.get_traceback(),
 			)
+		if dispatched:
+			frappe.db.set_value(
+				"CRM Lead",
+				lead,
+				{
+					"survey_invite_count": 1,
+					"survey_last_invite_at": now,
+				},
+				update_modified=False,
+			)
 
 	return {
 		"status": "closed",

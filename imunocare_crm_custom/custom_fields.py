@@ -190,6 +190,29 @@ CRM_LEAD_CUSTOM_FIELDS = {
 			"insert_after": "atendente_encerramento",
 			"read_only": 1,
 		},
+		{
+			"fieldname": "survey_invite_count",
+			"fieldtype": "Int",
+			"label": "Tentativas de Convite",
+			"insert_after": "encerramento_datetime",
+			"read_only": 1,
+			"default": "0",
+			"description": "Quantas vezes o convite de avaliação foi disparado (máx 2)",
+		},
+		{
+			"fieldname": "survey_last_invite_at",
+			"fieldtype": "Datetime",
+			"label": "Último Convite Enviado em",
+			"insert_after": "survey_invite_count",
+			"read_only": 1,
+		},
+		{
+			"fieldname": "inativo_tagged_at",
+			"fieldtype": "Datetime",
+			"label": "Marcado como Inativo em",
+			"insert_after": "survey_last_invite_at",
+			"read_only": 1,
+		},
 	]
 }
 

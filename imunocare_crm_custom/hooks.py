@@ -113,6 +113,14 @@ fixtures = [
 		"dt": "CRM Lead Status",
 		"filters": [["name", "in", ["Missed Call"]]],
 	},
+	{
+		"dt": "Role",
+		"filters": [["role_name", "=", "Imunocare Atendente"]],
+	},
+	{
+		"dt": "Assignment Rule",
+		"filters": [["name", "=", "Imunocare CRM Lead Round Robin"]],
+	},
 ]
 
 # Uninstallation

@@ -1,0 +1,116 @@
+{
+ "actions": [],
+ "creation": "2026-04-22 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "credentials_section",
+  "account_sid",
+  "auth_token",
+  "column_break_creds",
+  "webhook_base_url",
+  "channels_section",
+  "whatsapp_sender",
+  "column_break_channels",
+  "voice_number",
+  "recording_section",
+  "record_calls",
+  "column_break_rec",
+  "recording_retention_days"
+ ],
+ "fields": [
+  {
+   "fieldname": "credentials_section",
+   "fieldtype": "Section Break",
+   "label": "Credenciais Twilio"
+  },
+  {
+   "fieldname": "account_sid",
+   "fieldtype": "Data",
+   "label": "Account SID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "auth_token",
+   "fieldtype": "Password",
+   "label": "Auth Token",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_creds",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "webhook_base_url",
+   "fieldtype": "Data",
+   "label": "Webhook Base URL",
+   "description": "URL pública usada pela Twilio para callbacks (ex: https://imunocare.vps-kinghost.net)"
+  },
+  {
+   "fieldname": "channels_section",
+   "fieldtype": "Section Break",
+   "label": "Canais"
+  },
+  {
+   "fieldname": "whatsapp_sender",
+   "fieldtype": "Data",
+   "label": "WhatsApp Sender",
+   "description": "Formato E.164 com prefixo whatsapp: (ex: whatsapp:+5511999999999)"
+  },
+  {
+   "fieldname": "column_break_channels",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "voice_number",
+   "fieldtype": "Data",
+   "label": "Voice Number",
+   "description": "Número Twilio de voz em E.164 (ex: +5511999999999)"
+  },
+  {
+   "fieldname": "recording_section",
+   "fieldtype": "Section Break",
+   "label": "Gravação de Chamadas"
+  },
+  {
+   "fieldname": "record_calls",
+   "fieldtype": "Check",
+   "label": "Gravar Chamadas",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_rec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "recording_retention_days",
+   "fieldtype": "Int",
+   "label": "Retenção de Gravações (dias)",
+   "default": "90",
+   "description": "Dias para manter gravações antes de purgar (LGPD)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-04-22 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Twilio Integration",
+ "name": "Twilio Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

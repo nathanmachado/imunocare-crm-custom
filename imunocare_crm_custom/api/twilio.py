@@ -145,6 +145,66 @@ def voice_status():
 	return {"ok": True}
 
 
+@frappe.whitelist(methods=["GET"])
+def recording_proxy(call_sid: str):
+	"""Proxy autenticado para a gravação Twilio de um CRM Call Log (MVP-10).
+
+	- Exige usuário autenticado com permissão de leitura no Call Log.
+	- Busca `recording_url` gravado no Call Log e faz fetch em `https://api.twilio.com`
+	  usando Basic Auth (AccountSid:AuthToken) — nunca expõe credenciais ao cliente.
+	- Devolve o áudio como binary (audio/mpeg) para consumo via <audio controls>.
+	"""
+	import requests
+
+	call_sid = (call_sid or "").strip()
+	if not call_sid:
+		frappe.throw("call_sid obrigatório")
+
+	if not frappe.db.exists("CRM Call Log", call_sid):
+		frappe.local.response["http_status_code"] = 404
+		return {"error": "call_log_not_found"}
+
+	try:
+		frappe.get_doc("CRM Call Log", call_sid).check_permission("read")
+	except frappe.PermissionError:
+		frappe.local.response["http_status_code"] = 403
+		return {"error": "forbidden"}
+
+	recording_url = frappe.db.get_value("CRM Call Log", call_sid, "recording_url")
+	if not recording_url:
+		frappe.local.response["http_status_code"] = 404
+		return {"error": "recording_not_available"}
+
+	settings = get_settings()
+	auth_token = settings.get_password("auth_token", raise_exception=False)
+	if not settings.account_sid or not auth_token:
+		frappe.local.response["http_status_code"] = 503
+		return {"error": "twilio_not_configured"}
+
+	fetch_url = recording_url if recording_url.endswith(".mp3") else f"{recording_url}.mp3"
+	try:
+		resp = requests.get(
+			fetch_url, auth=(settings.account_sid, auth_token), timeout=30
+		)
+	except requests.RequestException as e:
+		frappe.log_error(
+			title=f"recording_proxy fetch failed (sid={call_sid})",
+			message=f"{fetch_url}\n{e}",
+		)
+		frappe.local.response["http_status_code"] = 502
+		return {"error": "upstream_fetch_failed"}
+
+	if resp.status_code != 200:
+		frappe.local.response["http_status_code"] = 502
+		return {"error": "upstream_status_" + str(resp.status_code)}
+
+	frappe.local.response.filename = f"call_{call_sid}.mp3"
+	frappe.local.response.filecontent = resp.content
+	frappe.local.response.type = "binary"
+	frappe.local.response.headers = {"Content-Type": "audio/mpeg"}
+	return
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def voice_consent():
 	"""Webhook invocado pelo <Gather> do IVR de consentimento (MVP-05)."""

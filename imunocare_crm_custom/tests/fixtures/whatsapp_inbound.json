@@ -1,0 +1,15 @@
+{
+  "MessageSid": "SMaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "SmsSid": "SMaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "SmsMessageSid": "SMaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "AccountSid": "ACtest00000000000000000000000000",
+  "MessagingServiceSid": "",
+  "From": "whatsapp:+5511999999999",
+  "To": "whatsapp:+5511888888888",
+  "Body": "Olá, gostaria de agendar uma vacina",
+  "NumMedia": "0",
+  "NumSegments": "1",
+  "ProfileName": "João Silva",
+  "WaId": "5511999999999",
+  "SmsStatus": "received"
+}

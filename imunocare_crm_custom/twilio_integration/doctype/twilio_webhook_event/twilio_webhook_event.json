@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "autoname": "field:sid",
+ "creation": "2026-04-22 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sid",
+  "channel",
+  "http_method",
+  "received_at",
+  "column_break_1",
+  "signature_valid",
+  "processed",
+  "processing_error",
+  "payload_section",
+  "url",
+  "params"
+ ],
+ "fields": [
+  {
+   "fieldname": "sid",
+   "fieldtype": "Data",
+   "label": "SID",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "label": "Canal",
+   "options": "WhatsApp\nVoice\nUnknown",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "http_method",
+   "fieldtype": "Data",
+   "label": "HTTP Method",
+   "default": "POST"
+  },
+  {
+   "fieldname": "received_at",
+   "fieldtype": "Datetime",
+   "label": "Recebido em",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "signature_valid",
+   "fieldtype": "Check",
+   "label": "Assinatura Válida",
+   "default": "0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "processed",
+   "fieldtype": "Check",
+   "label": "Processado",
+   "default": "0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "processing_error",
+   "fieldtype": "Small Text",
+   "label": "Erro de Processamento"
+  },
+  {
+   "fieldname": "payload_section",
+   "fieldtype": "Section Break",
+   "label": "Payload"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "params",
+   "fieldtype": "Code",
+   "label": "Params",
+   "options": "JSON"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-04-22 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Twilio Integration",
+ "name": "Twilio Webhook Event",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "received_at",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

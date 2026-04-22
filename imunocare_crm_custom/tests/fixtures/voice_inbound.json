@@ -1,0 +1,13 @@
+{
+  "CallSid": "CAbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "AccountSid": "ACtest00000000000000000000000000",
+  "From": "+5511999999999",
+  "To": "+5511888888888",
+  "Caller": "+5511999999999",
+  "Called": "+5511888888888",
+  "Direction": "inbound",
+  "CallStatus": "ringing",
+  "ApiVersion": "2010-04-01",
+  "CallerCountry": "BR",
+  "CallerState": "SP"
+}

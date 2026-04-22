@@ -1,0 +1,120 @@
+from __future__ import annotations
+
+import json
+
+import frappe
+from twilio.request_validator import RequestValidator
+
+from imunocare_crm_custom.twilio_integration.client import get_settings
+
+WHATSAPP_TWIML_EMPTY = '<?xml version="1.0" encoding="UTF-8"?><Response></Response>'
+VOICE_TWIML_HANGUP = '<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>'
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def webhook():
+	request = frappe.request
+	params = dict(frappe.form_dict)
+	params.pop("cmd", None)
+
+	channel = _detect_channel(params)
+	sid = params.get("MessageSid") or params.get("CallSid") or ""
+
+	url = _full_url(request)
+	signature = request.headers.get("X-Twilio-Signature", "")
+	signature_valid = _validate_signature(url, params, signature)
+
+	if not signature_valid:
+		frappe.local.response["http_status_code"] = 403
+		return {"error": "invalid_signature"}
+
+	if not sid:
+		frappe.local.response["http_status_code"] = 400
+		return {"error": "missing_sid"}
+
+	if _is_replay(sid):
+		return _respond_for_channel(channel)
+
+	_log_event(sid=sid, channel=channel, url=url, params=params, signature_valid=True)
+
+	try:
+		if channel == "WhatsApp":
+			_handle_whatsapp(params)
+		elif channel == "Voice":
+			return _handle_voice(params)
+		frappe.db.set_value(
+			"Twilio Webhook Event", sid, "processed", 1, update_modified=False
+		)
+	except Exception as e:
+		frappe.log_error(title=f"Twilio webhook processing failed ({channel})", message=frappe.get_traceback())
+		frappe.db.set_value(
+			"Twilio Webhook Event", sid, "processing_error", str(e)[:500], update_modified=False
+		)
+
+	return _respond_for_channel(channel)
+
+
+def _detect_channel(params: dict) -> str:
+	if params.get("MessageSid"):
+		return "WhatsApp"
+	if params.get("CallSid"):
+		return "Voice"
+	return "Unknown"
+
+
+def _full_url(request) -> str:
+	proto = request.headers.get("X-Forwarded-Proto") or request.scheme
+	host = request.headers.get("X-Forwarded-Host") or request.host
+	return f"{proto}://{host}{request.path}"
+
+
+def _validate_signature(url: str, params: dict, signature: str) -> bool:
+	if not signature:
+		return False
+	settings = get_settings()
+	auth_token = settings.get_password("auth_token", raise_exception=False)
+	if not auth_token:
+		return False
+	validator = RequestValidator(auth_token)
+	return validator.validate(url, params, signature)
+
+
+def _is_replay(sid: str) -> bool:
+	return bool(frappe.db.exists("Twilio Webhook Event", sid))
+
+
+def _log_event(*, sid: str, channel: str, url: str, params: dict, signature_valid: bool) -> None:
+	doc = frappe.get_doc(
+		{
+			"doctype": "Twilio Webhook Event",
+			"sid": sid,
+			"channel": channel,
+			"http_method": "POST",
+			"received_at": frappe.utils.now_datetime(),
+			"signature_valid": 1 if signature_valid else 0,
+			"url": url,
+			"params": json.dumps(params, ensure_ascii=False, indent=2),
+		}
+	)
+	doc.insert(ignore_permissions=True)
+
+
+def _handle_whatsapp(params: dict) -> None:
+	# Stub — implementado em MVP-04 (Communication + mídia)
+	pass
+
+
+def _handle_voice(params: dict):
+	# Stub — implementado em MVP-05 (Call Log + TwiML forward)
+	frappe.local.response["type"] = "xml"
+	frappe.local.response["xml"] = VOICE_TWIML_HANGUP
+	return
+
+
+def _respond_for_channel(channel: str):
+	if channel == "Voice":
+		frappe.local.response["type"] = "xml"
+		frappe.local.response["xml"] = VOICE_TWIML_HANGUP
+		return
+	frappe.local.response["type"] = "xml"
+	frappe.local.response["xml"] = WHATSAPP_TWIML_EMPTY

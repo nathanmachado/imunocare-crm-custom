@@ -136,6 +136,10 @@ fixtures = [
 		"dt": "Quality Feedback Template",
 		"filters": [["name", "=", "Avaliação de Atendimento Imunocare"]],
 	},
+	{
+		"dt": "CRM Form Script",
+		"filters": [["name", "=", "Imunocare CRM Lead Actions"]],
+	},
 ]
 
 # Uninstallation

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
@@ -121,6 +123,9 @@ QF_TEMPLATE_PARAMETERS = [
 	"Tempo de resposta",
 ]
 
+CRM_LEAD_FORM_SCRIPT_NAME = "Imunocare CRM Lead Actions"
+CRM_LEAD_FORM_SCRIPT_PATH = ("crm_form_scripts", "crm_lead_actions.js")
+
 
 CRM_LEAD_CUSTOM_FIELDS = {
 	"CRM Lead": [
@@ -234,6 +239,7 @@ def install_custom_fields() -> None:
 	_ensure_attendant_role()
 	_ensure_assignment_rule()
 	_ensure_qf_template()
+	_ensure_crm_lead_form_script()
 
 
 def _ensure_crm_lead_statuses() -> None:
@@ -290,6 +296,43 @@ def _ensure_qf_template() -> None:
 			"parameters": [{"parameter": p} for p in QF_TEMPLATE_PARAMETERS],
 		}
 	).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+
+def _ensure_crm_lead_form_script() -> None:
+	"""Registra o CRM Form Script que injeta 3 ações no header do CRM Lead no Portal.
+
+	Fonte do script: `crm_form_scripts/crm_lead_actions.js`. Atualiza o doc se o
+	conteúdo divergir, para que mudanças no arquivo sejam aplicadas no próximo
+	`bench migrate`.
+	"""
+	if not frappe.db.exists("DocType", "CRM Form Script"):
+		return
+	app_path = frappe.get_app_path("imunocare_crm_custom")
+	script_path = os.path.join(app_path, *CRM_LEAD_FORM_SCRIPT_PATH)
+	with open(script_path, encoding="utf-8") as fh:
+		script_body = fh.read()
+
+	payload = {
+		"doctype": "CRM Form Script",
+		"name": CRM_LEAD_FORM_SCRIPT_NAME,
+		"dt": "CRM Lead",
+		"view": "Form",
+		"enabled": 1,
+		"is_standard": 0,
+		"script": script_body,
+	}
+
+	if frappe.db.exists("CRM Form Script", CRM_LEAD_FORM_SCRIPT_NAME):
+		doc = frappe.get_doc("CRM Form Script", CRM_LEAD_FORM_SCRIPT_NAME)
+		dirty = False
+		for key in ("dt", "view", "enabled", "is_standard", "script"):
+			if doc.get(key) != payload[key]:
+				doc.set(key, payload[key])
+				dirty = True
+		if dirty:
+			doc.save(ignore_permissions=True)
+	else:
+		frappe.get_doc(payload).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 def sync_assignment_rule_users() -> None:

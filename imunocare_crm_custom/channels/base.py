@@ -41,6 +41,99 @@ def resolve_patient(phone: str) -> str | None:
 	return None
 
 
+def add_patient_timeline_link(comm_name: str, patient: str | None) -> bool:
+	"""Garante que a Communication tenha um `timeline_link` para o Patient.
+
+	Idempotente: não duplica vínculo já existente. Retorna True se adicionou,
+	False caso contrário (já existia, patient inválido, ou comm não encontrada).
+	"""
+	if not comm_name or not patient:
+		return False
+	if not frappe.db.exists("Communication", comm_name):
+		return False
+	if not frappe.db.exists("Patient", patient):
+		return False
+	if frappe.db.exists(
+		"Communication Link",
+		{"parent": comm_name, "link_doctype": "Patient", "link_name": patient},
+	):
+		return False
+	comm = frappe.get_doc("Communication", comm_name)
+	comm.append("timeline_links", {"link_doctype": "Patient", "link_name": patient})
+	comm.save(ignore_permissions=True)
+	return True
+
+
+def communication_before_insert(doc, method=None) -> None:
+	"""doc_event: ao inserir Communication referenciando CRM Lead com paciente,
+	popula `timeline_links` para o Patient automaticamente.
+	"""
+	if doc.reference_doctype != "CRM Lead" or not doc.reference_name:
+		return
+	patient = frappe.db.get_value("CRM Lead", doc.reference_name, "patient")
+	if not patient:
+		return
+	if not frappe.db.exists("Patient", patient):
+		return
+	for link in doc.get("timeline_links") or []:
+		if link.get("link_doctype") == "Patient" and link.get("link_name") == patient:
+			return
+	doc.append("timeline_links", {"link_doctype": "Patient", "link_name": patient})
+
+
+def backfill_patient_links_for_lead(lead: str, patient: str) -> dict:
+	"""Atualiza Communications e CRM Call Logs do Lead para referenciar o Patient.
+
+	- Communications: adiciona `timeline_link` para Patient quando faltar.
+	- CRM Call Logs: seta o campo `patient` quando vazio.
+
+	Idempotente. Retorna {"communications": N, "call_logs": M} com a quantidade
+	de registros efetivamente atualizados.
+	"""
+	if not lead or not patient:
+		return {"communications": 0, "call_logs": 0}
+	if not frappe.db.exists("Patient", patient):
+		return {"communications": 0, "call_logs": 0}
+
+	comm_count = 0
+	for comm_name in frappe.get_all(
+		"Communication",
+		filters={"reference_doctype": "CRM Lead", "reference_name": lead},
+		pluck="name",
+	):
+		try:
+			if add_patient_timeline_link(comm_name, patient):
+				comm_count += 1
+		except Exception:
+			frappe.log_error(
+				title=f"backfill timeline_link Patient (comm={comm_name}, patient={patient})",
+				message=frappe.get_traceback(),
+			)
+
+	log_count = 0
+	for log_name in frappe.get_all(
+		"CRM Call Log",
+		filters={
+			"reference_doctype": "CRM Lead",
+			"reference_docname": lead,
+			"patient": ("in", ["", None]),
+		},
+		pluck="name",
+	):
+		try:
+			frappe.db.set_value(
+				"CRM Call Log", log_name, "patient", patient, update_modified=False
+			)
+			log_count += 1
+		except Exception:
+			frappe.log_error(
+				title=f"backfill patient (call_log={log_name}, patient={patient})",
+				message=frappe.get_traceback(),
+			)
+
+	return {"communications": comm_count, "call_logs": log_count}
+
+
 def resolve_contact(phone: str) -> str | None:
 	"""Retorna o nome do Contact com este telefone, se existir."""
 	e164 = normalize_phone(phone)

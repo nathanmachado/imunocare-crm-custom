@@ -4,6 +4,7 @@ import json
 
 import frappe
 from twilio.request_validator import RequestValidator
+from werkzeug.wrappers import Response
 
 from imunocare_crm_custom.twilio_integration.client import get_settings
 
@@ -292,9 +293,7 @@ def _handle_voice(params: dict) -> str:
 
 
 def _set_xml_response(xml: str):
-	frappe.local.response["type"] = "xml"
-	frappe.local.response["xml"] = xml
-	return
+	return Response(xml, mimetype="text/xml")
 
 
 def _respond_for_channel(channel: str):

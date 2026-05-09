@@ -123,3 +123,18 @@ class TestTwilioWebhook(FrappeTestCase):
 		params = {"AccountSid": TEST_ACCOUNT_SID}
 		self._call(params)
 		self.assertEqual(frappe.local.response.get("http_status_code"), 400)
+
+	def test_webhook_returns_xml_response(self):
+		"""WhatsApp webhook deve retornar werkzeug.Response com mimetype text/xml.
+
+		Regressão: setar `frappe.local.response["type"] = "xml"` quebra em Frappe v15
+		porque `xml` não está em `response_type_map`. Forma correta é retornar um
+		Response object — Frappe v15 short-circuita em `frappe.api.handle` se isinstance.
+		"""
+		from werkzeug.wrappers import Response
+
+		params = _load("whatsapp_inbound.json")
+		result = self._call(params)
+		self.assertIsInstance(result, Response)
+		self.assertEqual(result.mimetype, "text/xml")
+		self.assertIn(b"<?xml", result.get_data())

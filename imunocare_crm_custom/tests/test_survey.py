@@ -287,3 +287,58 @@ class TestSurveySubmit(FrappeTestCase):
 		self.assertTrue(result.get("ok"))
 		qf = frappe.get_doc("Quality Feedback", result["feedback"])
 		self.assertEqual(qf.comment or "", "")
+
+	def test_landing_page_radios_have_distinct_groups_per_parameter(self):
+		"""Regressão: cada parâmetro deve ter seu próprio name de grupo de radio.
+
+		Bug original: o template usava `name="rating_{{ loop.index0 }}"` mas
+		`loop` apontava para o loop interno (1..5), repetindo os mesmos 5 nomes
+		em todos os parâmetros — clicar em um parâmetro deselecionava o mesmo
+		valor em outro parâmetro, e o submit acabava enviando ratings vazio,
+		retornando 400 no_valid_ratings.
+
+		Renderiza o trecho relevante do template via Jinja diretamente
+		(sem o `extends "templates/web.html"` que exige contexto web HTTP).
+		"""
+		import re
+		from jinja2 import Environment
+
+		# Snippet mínimo replicando o trecho de geração de radios do template
+		snippet = """
+		{% for param in parameters %}
+		{% set param_idx = loop.index0 %}
+		{% for n in range(1, 6) %}
+			<input type="radio" name="rating_param_{{ param_idx }}" data-param="{{ param }}" value="{{ n }}" required>
+		{% endfor %}
+		{% endfor %}
+		"""
+		params = ["Canal", "Cordialidade", "Resolução", "Tempo de resposta"]
+		html = Environment().from_string(snippet).render(parameters=params)
+		names = set(re.findall(r'name="([^"]+)"', html))
+		self.assertEqual(
+			len(names), len(params),
+			msg=f"esperava {len(params)} grupos distintos, obteve {len(names)}: {names}",
+		)
+		# Sanity: o template real não pode ter regredido para `name="rating_{{ loop.index0 }}"`
+		import os
+		template_path = os.path.join(
+			os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+			"www", "avaliacao.html",
+		)
+		with open(template_path, encoding="utf-8") as f:
+			tpl = f.read()
+		self.assertNotIn(
+			'name="rating_{{ loop.index0 }}"', tpl,
+			msg="template regrediu para o pattern bugado de loop interno",
+		)
+		self.assertIn(
+			"set param_idx = loop.index0", tpl,
+			msg="template não está aliasando o loop externo de parâmetros",
+		)
+		# Regressão CSRF: fetch deve ser credentials: "omit" para não usar a sessão
+		# do browser quando um System Manager logado abrir a página de avaliação.
+		# Sem isso, Frappe exige CSRF token válido e devolve 400 BAD REQUEST.
+		self.assertIn(
+			'credentials: "omit"', tpl,
+			msg="fetch do submit precisa de credentials: 'omit' (request guest puro)",
+		)

@@ -277,6 +277,42 @@ class TestSurveySubmit(FrappeTestCase):
 		self.assertEqual(frappe.local.response.get("http_status_code"), 400)
 		self.assertEqual(result.get("error"), "no_valid_ratings")
 
+	def test_submit_drops_ratings_outside_template(self):
+		"""Regressão: parâmetros que não estão no template do Quality Feedback
+		devem ser descartados silenciosamente, não persistidos com chaves arbitrárias.
+
+		Bug original: a API aceitava qualquer chave em `ratings` e o doc
+		`Quality Feedback` ficava com parâmetros `atendimento`, `resolucao`,
+		`recomendaria` etc, divergentes dos `Canal`, `Cordialidade`, `Resolução`,
+		`Tempo de resposta` do template.
+		"""
+		lead, token = self._closed_lead("dropparam")
+		result = survey_api.submit_feedback(
+			token=token,
+			ratings={
+				"Canal": 5,
+				"atendimento": 5,  # não existe no template
+				"resolucao": 5,    # não existe no template (sem cedilha)
+				"Cordialidade": 4,
+			},
+			comment="",
+		)
+		self.assertTrue(result.get("ok"))
+		qf = frappe.get_doc("Quality Feedback", result["feedback"])
+		stored = {p.parameter for p in qf.parameters}
+		self.assertEqual(stored, {"Canal", "Cordialidade"})
+
+	def test_submit_only_unknown_params_returns_400(self):
+		"""Se TODOS os parâmetros enviados são desconhecidos, cai em no_valid_ratings."""
+		lead, token = self._closed_lead("alldrop")
+		result = survey_api.submit_feedback(
+			token=token,
+			ratings={"atendimento": 5, "resolucao": 5},
+			comment="",
+		)
+		self.assertEqual(frappe.local.response.get("http_status_code"), 400)
+		self.assertEqual(result.get("error"), "no_valid_ratings")
+
 	def test_submit_without_comment_is_allowed(self):
 		lead, token = self._closed_lead("nocomment")
 		result = survey_api.submit_feedback(

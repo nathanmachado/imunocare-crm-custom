@@ -131,6 +131,8 @@ def submit_feedback(token: str, ratings: str | dict, comment: str = ""):
 		frappe.local.response["http_status_code"] = 400
 		return {"error": "lead_not_closed"}
 
+	allowed_params = _template_parameter_set()
+
 	qf_doc = {
 		"doctype": "Quality Feedback",
 		"template": QF_TEMPLATE_NAME,
@@ -147,6 +149,10 @@ def submit_feedback(token: str, ratings: str | dict, comment: str = ""):
 			continue
 		if not (RATING_MIN <= rating <= RATING_MAX):
 			continue
+		if allowed_params and str(param) not in allowed_params:
+			# parâmetro fora do template é descartado silenciosamente para evitar
+			# poluição do Quality Feedback com chaves arbitrárias enviadas via API
+			continue
 		qf_doc["parameters"].append({"parameter": str(param), "rating": str(rating)})
 
 	if not qf_doc["parameters"]:
@@ -155,6 +161,18 @@ def submit_feedback(token: str, ratings: str | dict, comment: str = ""):
 
 	doc = frappe.get_doc(qf_doc).insert(ignore_permissions=True)
 	return {"ok": True, "feedback": doc.name}
+
+
+def _template_parameter_set() -> set[str]:
+	"""Retorna conjunto de nomes de parâmetro do template ativo.
+
+	Vazio se o template não existir (não bloqueia o submit nesse caso —
+	preserva o comportamento antigo de aceitar qualquer chave).
+	"""
+	if not frappe.db.exists("Quality Feedback Template", QF_TEMPLATE_NAME):
+		return set()
+	tpl = frappe.get_cached_doc("Quality Feedback Template", QF_TEMPLATE_NAME)
+	return {p.parameter for p in tpl.parameters}
 
 
 def _has_interaction(lead: str) -> bool:

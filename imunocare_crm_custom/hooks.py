@@ -125,14 +125,6 @@ fixtures = [
 		"filters": [["name", "in", ["Missed Call"]]],
 	},
 	{
-		"dt": "Role",
-		"filters": [["role_name", "=", "Imunocare Atendente"]],
-	},
-	{
-		"dt": "Assignment Rule",
-		"filters": [["name", "=", "Imunocare CRM Lead Round Robin"]],
-	},
-	{
 		"dt": "Quality Feedback Template",
 		"filters": [["name", "=", "Avaliação de Atendimento Imunocare"]],
 	},
@@ -211,7 +203,6 @@ scheduler_events = {
 	"daily": [
 		"imunocare_crm_custom.twilio_integration.tasks.sync_message_templates_approval",
 		"imunocare_crm_custom.tasks.leads.tag_inactive_leads",
-		"imunocare_crm_custom.tasks.retention.purge_old_recordings",
 	],
 	"cron": {
 		"*/15 * * * *": [

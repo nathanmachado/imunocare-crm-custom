@@ -111,10 +111,6 @@ CRM_LEAD_STATUSES = [
 	},
 ]
 
-IMUNOCARE_ATTENDANT_ROLE = "Imunocare Atendente"
-
-ASSIGNMENT_RULE_NAME = "Imunocare CRM Lead Round Robin"
-
 QF_TEMPLATE_NAME = "Avaliação de Atendimento Imunocare"
 QF_TEMPLATE_PARAMETERS = [
 	"Canal",
@@ -236,8 +232,6 @@ def install_custom_fields() -> None:
 		validate_fields_for_doctype=False,
 	)
 	_ensure_crm_lead_statuses()
-	_ensure_attendant_role()
-	_ensure_assignment_rule()
 	_ensure_qf_template()
 	_ensure_crm_lead_form_script()
 
@@ -246,44 +240,6 @@ def _ensure_crm_lead_statuses() -> None:
 	for status in CRM_LEAD_STATUSES:
 		if not frappe.db.exists("CRM Lead Status", status["lead_status"]):
 			frappe.get_doc(status).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-
-def _ensure_attendant_role() -> None:
-	if not frappe.db.exists("Role", IMUNOCARE_ATTENDANT_ROLE):
-		frappe.get_doc(
-			{
-				"doctype": "Role",
-				"role_name": IMUNOCARE_ATTENDANT_ROLE,
-				"desk_access": 1,
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-
-
-def _ensure_assignment_rule() -> None:
-	if not frappe.db.exists("Assignment Rule", ASSIGNMENT_RULE_NAME):
-		frappe.get_doc(
-			{
-				"doctype": "Assignment Rule",
-				"name": ASSIGNMENT_RULE_NAME,
-				"document_type": "CRM Lead",
-				"description": "Distribui CRM Lead novo entre atendentes Imunocare via round-robin.",
-				"priority": 10,
-				"disabled": 1,
-				"rule": "Round Robin",
-				"assign_condition": 'status == "New"',
-				"unassign_condition": 'status in ("Converted", "Lost", "Missed Call")',
-				"assignment_days": [
-					{"day": "Monday"},
-					{"day": "Tuesday"},
-					{"day": "Wednesday"},
-					{"day": "Thursday"},
-					{"day": "Friday"},
-					{"day": "Saturday"},
-					{"day": "Sunday"},
-				],
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-	sync_assignment_rule_users()
 
 
 def _ensure_qf_template() -> None:
@@ -335,24 +291,3 @@ def _ensure_crm_lead_form_script() -> None:
 		frappe.get_doc(payload).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
-def sync_assignment_rule_users() -> None:
-	"""Sincroniza os users do Assignment Rule com os usuários ativos que possuem o role Imunocare Atendente."""
-	if not frappe.db.exists("Assignment Rule", ASSIGNMENT_RULE_NAME):
-		return
-	role_users = frappe.get_all(
-		"Has Role",
-		filters={"role": IMUNOCARE_ATTENDANT_ROLE, "parenttype": "User"},
-		pluck="parent",
-	)
-	active = [u for u in role_users if frappe.db.get_value("User", u, "enabled")]
-
-	rule = frappe.get_doc("Assignment Rule", ASSIGNMENT_RULE_NAME)
-	current = {u.user for u in (rule.users or [])}
-	desired = set(active)
-	if current == desired and bool(desired) == (not rule.disabled):
-		return
-	rule.users = []
-	for u in sorted(desired):
-		rule.append("users", {"user": u})
-	rule.disabled = 0 if desired else 1
-	rule.save(ignore_permissions=True)

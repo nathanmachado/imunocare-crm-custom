@@ -3,7 +3,7 @@ from __future__ import annotations
 import frappe
 from twilio.twiml.voice_response import Dial, Gather, VoiceResponse
 
-from imunocare_crm_custom.channels.base import apply_assignment, get_or_create_lead, resolve_patient
+from imunocare_crm_custom.channels.base import get_or_create_lead, resolve_patient
 from imunocare_crm_custom.twilio_integration.client import get_settings
 from imunocare_crm_custom.utils.phone import normalize_phone
 
@@ -38,7 +38,7 @@ def handle_inbound(payload: dict) -> str:
 		return _voicemail_twiml()
 
 	lead_name = get_or_create_lead(phone, "Voice")
-	assignee = apply_assignment(lead_name)
+	assignee = None
 	patient_name = resolve_patient(phone)
 
 	frappe.get_doc(

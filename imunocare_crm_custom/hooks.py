@@ -198,6 +198,10 @@ doc_events = {
 	"Communication": {
 		"before_insert": "imunocare_crm_custom.channels.base.communication_before_insert",
 	},
+	"CRM Call Log": {
+		"after_insert": "imunocare_crm_custom.crm_call_log_hooks.after_insert",
+		"on_update": "imunocare_crm_custom.crm_call_log_hooks.on_update",
+	},
 }
 
 # Scheduled Tasks

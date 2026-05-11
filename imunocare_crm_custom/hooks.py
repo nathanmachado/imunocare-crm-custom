@@ -194,6 +194,9 @@ doc_events = {
 		"after_insert": "imunocare_crm_custom.crm_call_log_hooks.after_insert",
 		"on_update": "imunocare_crm_custom.crm_call_log_hooks.on_update",
 	},
+	"WhatsApp Message": {
+		"before_insert": "imunocare_crm_custom.whatsapp_message_hooks.before_insert",
+	},
 }
 
 # Scheduled Tasks

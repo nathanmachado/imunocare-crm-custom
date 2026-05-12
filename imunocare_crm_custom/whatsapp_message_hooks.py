@@ -50,17 +50,24 @@ def before_insert(doc, method=None) -> None:
 
 
 def after_insert(doc, method=None) -> None:
-	"""Re-emite o evento socketio `whatsapp_message` após o commit.
+	"""Re-emite eventos socketio após o commit para atualização realtime.
 
-	O `crm.api.whatsapp.on_update` do CRM upstream chama `publish_realtime`
-	sem `after_commit=True`, então emite ANTES do commit. O frontend recebe
-	o evento, dispara `whatsappMessages.reload()`, mas a query SELECT no DB
-	ainda não enxerga o registro novo. Aqui re-emitimos o mesmo evento com
-	`after_commit=True` para garantir que o reload do frontend acontece com
-	o registro já visível no banco — atualização realtime sem F5.
+	1. `whatsapp_message`: o `crm.api.whatsapp.on_update` do CRM upstream chama
+	   `publish_realtime` sem `after_commit=True`, então emite ANTES do commit.
+	   O frontend recebe, dispara `whatsappMessages.reload()`, mas a query
+	   SELECT ainda não enxerga o registro. Re-emitimos com `after_commit=True`
+	   para que o reload do frontend acontece com o registro já no DB.
+
+	2. `refetch_resource` (para a lista de CRM Lead): quando o inbound cria
+	   um Lead novo (via `get_or_create_lead` em `before_insert`), a lista
+	   no frontend não atualiza sozinha porque o socket.js do CRM só escuta
+	   `refetch_resource` com cache_key. A lista de Leads usa
+	   `cache: ["CRM Lead", route.query.view, route.params.viewType]` em
+	   ViewControls.vue. Emitimos para os viewTypes mais comuns.
 	"""
 	if not doc.get("reference_doctype") or not doc.get("reference_name"):
 		return
+
 	frappe.publish_realtime(
 		"whatsapp_message",
 		{
@@ -69,3 +76,11 @@ def after_insert(doc, method=None) -> None:
 		},
 		after_commit=True,
 	)
+
+	if doc.reference_doctype == "CRM Lead":
+		for view_type in ("list", "kanban", "group_by"):
+			frappe.publish_realtime(
+				"refetch_resource",
+				{"cache_key": ["CRM Lead", None, view_type]},
+				after_commit=True,
+			)

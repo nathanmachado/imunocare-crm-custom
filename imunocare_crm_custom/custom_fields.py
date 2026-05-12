@@ -6,56 +6,7 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
-COMMUNICATION_CUSTOM_FIELDS = {
-	"Communication": [
-		{
-			"fieldname": "twilio_section",
-			"fieldtype": "Section Break",
-			"label": "Twilio",
-			"insert_after": "references_section",
-			"collapsible": 1,
-		},
-		{
-			"fieldname": "twilio_message_sid",
-			"fieldtype": "Data",
-			"label": "Twilio Message SID",
-			"insert_after": "twilio_section",
-			"unique": 1,
-			"read_only": 1,
-			"in_standard_filter": 1,
-		},
-		{
-			"fieldname": "whatsapp_direction",
-			"fieldtype": "Select",
-			"label": "WhatsApp Direction",
-			"options": "\ninbound\noutbound",
-			"insert_after": "twilio_message_sid",
-			"read_only": 1,
-		},
-		{
-			"fieldname": "whatsapp_status",
-			"fieldtype": "Data",
-			"label": "WhatsApp Status",
-			"insert_after": "whatsapp_direction",
-			"read_only": 1,
-			"description": "queued, sent, delivered, read, failed, undelivered, received",
-		},
-		{
-			"fieldname": "whatsapp_from",
-			"fieldtype": "Data",
-			"label": "WhatsApp From",
-			"insert_after": "whatsapp_status",
-			"read_only": 1,
-		},
-		{
-			"fieldname": "whatsapp_to",
-			"fieldtype": "Data",
-			"label": "WhatsApp To",
-			"insert_after": "whatsapp_from",
-			"read_only": 1,
-		},
-	]
-}
+COMMUNICATION_CUSTOM_FIELDS: dict[str, list[dict]] = {}
 
 COMMUNICATION_MEDIUM_OPTIONS = "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nWhatsApp\nOther"
 
@@ -89,14 +40,6 @@ CRM_CALL_LOG_CUSTOM_FIELDS = {
 			"options": "Patient",
 			"insert_after": "reference_docname",
 			"read_only": 1,
-		},
-		{
-			"fieldname": "consent_recorded",
-			"fieldtype": "Check",
-			"label": "Consentimento de Gravação",
-			"insert_after": "recording_url",
-			"default": "0",
-			"description": "Cliente autorizou gravação da chamada via IVR (LGPD)",
 		},
 	]
 }

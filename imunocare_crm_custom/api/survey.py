@@ -188,19 +188,37 @@ def _has_interaction(lead: str) -> bool:
 
 
 def _dispatch_invite(lead_doc, token: str) -> bool:
-	"""Dispara convite de avaliação via WhatsApp HSM (se source_channel=WhatsApp) ou noop."""
+	"""Dispara convite de avaliação via WhatsApp HSM (se source_channel=WhatsApp) ou noop.
+
+	Usa o app `frappe_whatsapp`: cria um `WhatsApp Message` Outgoing apontando
+	pro template registrado em `WhatsApp Templates` (já aprovado na Meta). O
+	`before_insert` do controller chama Meta API. Variáveis passadas via
+	`body_param` JSON (formato {"1": valor1, "2": valor2, ...}).
+
+	`imunocare_survey_invite_template` em `site_config.json` deve ser o nome
+	do doc `WhatsApp Templates` (não o nome da Meta — ele já mapeia).
+	"""
 	channel = (lead_doc.get("source_channel") or "").strip()
 	template_name = frappe.local.conf.get("imunocare_survey_invite_template")
 	if not template_name or channel != "WhatsApp":
 		return False
 
-	from imunocare_crm_custom.channels.whatsapp.sender import send_template
+	to = lead_doc.get("mobile_no") or lead_doc.get("phone")
+	if not to:
+		return False
 
 	base_url = (frappe.utils.get_url() or "").rstrip("/")
 	link = f"{base_url}/avaliacao?t={token}"
-	send_template(
-		lead=lead_doc.name,
-		template=template_name,
-		variables={"1": lead_doc.first_name or "Cliente", "2": link},
-	)
+
+	frappe.get_doc(
+		{
+			"doctype": "WhatsApp Message",
+			"type": "Outgoing",
+			"to": to,
+			"template": template_name,
+			"reference_doctype": "CRM Lead",
+			"reference_name": lead_doc.name,
+			"body_param": json.dumps({"1": lead_doc.first_name or "Cliente", "2": link}),
+		}
+	).insert(ignore_permissions=True)
 	return True

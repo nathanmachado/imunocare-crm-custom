@@ -104,14 +104,7 @@ fixtures = [
 			"CRM Lead-survey_invite_count",
 			"CRM Lead-survey_last_invite_at",
 			"CRM Lead-inativo_tagged_at",
-			"Communication-twilio_section",
-			"Communication-twilio_message_sid",
-			"Communication-whatsapp_direction",
-			"Communication-whatsapp_status",
-			"Communication-whatsapp_from",
-			"Communication-whatsapp_to",
 			"CRM Call Log-patient",
-			"CRM Call Log-consent_recorded",
 			"Quality Feedback-crm_lead",
 			"Quality Feedback-comment",
 		]]],
@@ -205,7 +198,6 @@ doc_events = {
 
 scheduler_events = {
 	"daily": [
-		"imunocare_crm_custom.twilio_integration.tasks.sync_message_templates_approval",
 		"imunocare_crm_custom.tasks.leads.tag_inactive_leads",
 	],
 	"cron": {

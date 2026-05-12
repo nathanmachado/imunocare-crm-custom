@@ -5,3 +5,4 @@
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
 imunocare_crm_custom.patches.v0_0_2.backfill_patient_timeline_links
+imunocare_crm_custom.patches.v0_0_3.cleanup_legacy_twilio

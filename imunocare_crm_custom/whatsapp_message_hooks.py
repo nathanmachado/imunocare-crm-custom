@@ -33,3 +33,25 @@ def before_insert(doc, method=None) -> None:
 	if lead:
 		doc.reference_doctype = "CRM Lead"
 		doc.reference_name = lead
+
+
+def after_insert(doc, method=None) -> None:
+	"""Re-emite o evento socketio `whatsapp_message` após o commit.
+
+	O `crm.api.whatsapp.on_update` do CRM upstream chama `publish_realtime`
+	sem `after_commit=True`, então emite ANTES do commit. O frontend recebe
+	o evento, dispara `whatsappMessages.reload()`, mas a query SELECT no DB
+	ainda não enxerga o registro novo. Aqui re-emitimos o mesmo evento com
+	`after_commit=True` para garantir que o reload do frontend acontece com
+	o registro já visível no banco — atualização realtime sem F5.
+	"""
+	if not doc.get("reference_doctype") or not doc.get("reference_name"):
+		return
+	frappe.publish_realtime(
+		"whatsapp_message",
+		{
+			"reference_doctype": doc.reference_doctype,
+			"reference_name": doc.reference_name,
+		},
+		after_commit=True,
+	)

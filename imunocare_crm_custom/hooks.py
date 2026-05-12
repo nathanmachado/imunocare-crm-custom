@@ -196,6 +196,7 @@ doc_events = {
 	},
 	"WhatsApp Message": {
 		"before_insert": "imunocare_crm_custom.whatsapp_message_hooks.before_insert",
+		"after_insert": "imunocare_crm_custom.whatsapp_message_hooks.after_insert",
 	},
 }
 
